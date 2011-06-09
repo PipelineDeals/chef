@@ -3,12 +3,11 @@ bash -c '
 <%= "export http_proxy=\"#{knife_config[:bootstrap_proxy]}\"" if knife_config[:bootstrap_proxy] -%>
 
 if [ ! -f /usr/bin/chef-client ]; then
-  apt-get install -y lsb-release
   echo "chef	chef/chef_server_url	string	<%= @chef_config[:chef_server_url] %>" | debconf-set-selections
-  [ -f /etc/apt/sources.list.d/opscode.list ] || echo "deb http://apt.opscode.com $(lsb_release -sc) main" > /etc/apt/sources.list.d/opscode.list
+  [ -f /etc/apt/sources.list.d/opscode.list ] || echo "deb http://apt.opscode.com squeeze main" > /etc/apt/sources.list.d/opscode.list
   wget <%= "--proxy=on " if knife_config[:bootstrap_proxy] %>-O- http://apt.opscode.com/packages@opscode.com.gpg.key | apt-key add -
   apt-get update
-  apt-get install -y chef
+  apt-get install -y --force-yes chef
 fi
 
 <% unless @chef_config[:validation_client_name] == "chef-validator" -%>
@@ -38,4 +37,4 @@ cat <<'EOP'
 EOP
 ) > /etc/chef/first-boot.json
 
-<%= start_chef %>'
+/usr/bin/chef-client -j /etc/chef/first-boot.json'
